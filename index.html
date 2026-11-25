@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="cs"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Jednota">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png">
+<title>Jednota</title>
+<script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script>window.Peer||document.write('<script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"><\/script>')</script>
+<script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>window.qrcode||document.write('<script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"><\/script>')</script>
+<style>
+:root{--t:#f5f7fb;--m:#8d99ae;--a:#4f9dff;--a2:#7c5cff;--ok:#30d158;--warn:#ffd60a;--bad:#ff453a;--g:rgba(255,255,255,.065);--gb:rgba(255,255,255,.11);--e:cubic-bezier(.2,.9,.2,1);--sp:cubic-bezier(.34,1.56,.64,1)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}[hidden]{display:none!important}
+html,body{margin:0;height:100%;background:#000;color:var(--t);font:16px/1.35 -apple-system,"SF Pro Text",system-ui,sans-serif;overscroll-behavior:none;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:var(--t)}
+.aura{position:fixed;inset:0;overflow:hidden;z-index:0;pointer-events:none}.aura i{position:absolute;width:70vmax;height:70vmax;border-radius:50%;filter:blur(90px);opacity:.28;animation:drift 22s ease-in-out infinite alternate}
+.aura i:nth-child(1){background:var(--a2);left:-30vmax;top:-30vmax}.aura i:nth-child(2){background:var(--a);right:-35vmax;top:20vh;animation-delay:-8s}.aura i:nth-child(3){background:#12b5a5;left:-10vmax;bottom:-40vmax;animation-delay:-14s}
+@keyframes drift{to{transform:translate(8vmax,6vmax) scale(1.15)}}
+#app{position:relative;z-index:1;display:flex;flex-direction:column;height:100%;padding-top:env(safe-area-inset-top);max-width:680px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 18px 6px}
+header h1{margin:0;font-size:32px;font-weight:800;letter-spacing:-.03em;background:linear-gradient(90deg,#fff,#a9c8ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.pills{display:flex;gap:6px}.pill{font-size:12px;font-weight:600;padding:5px 11px;border-radius:99px;background:var(--g);border:1px solid var(--gb);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:var(--m);transition:.3s}
+.pill.ok{color:var(--ok)}.pill.warn{color:var(--warn)}.pill.bad{color:var(--bad)}
+main{position:relative;flex:1;overflow:hidden}
+.view{position:absolute;inset:0;overflow-y:auto;padding:6px 14px 120px;opacity:0;transform:translateX(34px) scale(.985);pointer-events:none;transition:opacity .38s var(--e),transform .5s var(--e);-webkit-overflow-scrolling:touch}
+.view.on{opacity:1;transform:none;pointer-events:auto}.view.prev{transform:translateX(-34px) scale(.985)}
+.g,.card{background:var(--g);border:1px solid var(--gb);border-radius:22px;backdrop-filter:blur(26px) saturate(1.5);-webkit-backdrop-filter:blur(26px) saturate(1.5)}
+.card{padding:14px;margin-bottom:12px}
+h3{margin:20px 6px 8px;font-size:12px;font-weight:700;color:var(--m);text-transform:uppercase;letter-spacing:.09em}
+.hint{color:var(--m);font-size:13.5px;padding:4px 6px}
+button{-webkit-user-select:none;user-select:none;transition:transform .18s var(--sp),background .25s,opacity .2s}button:active{transform:scale(.95)}
+.btn{border:1px solid var(--gb);border-radius:16px;padding:13px;background:var(--g);font-weight:600}.btn.p{background:linear-gradient(135deg,var(--a),var(--a2));border:0;box-shadow:0 8px 24px -8px var(--a2)}.btn:disabled{opacity:.35}.btn.on{background:rgba(79,157,255,.25);border-color:var(--a)}.w{width:100%}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+input:not([type]),input[type=password],input[type=text],select,textarea{width:100%;border:1px solid var(--gb);background:rgba(0,0,0,.35);border-radius:14px;padding:12px;font-size:16px;outline:none}input:focus,textarea:focus{border-color:var(--a)}
+.seg{display:flex;background:rgba(0,0,0,.4);border:1px solid var(--gb);border-radius:14px;padding:3px;gap:2px}.seg button{flex:1;border:0;background:none;padding:10px 6px;border-radius:11px;font-weight:600;font-size:14px}.seg button.on{background:rgba(255,255,255,.14)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}.chips button{white-space:nowrap;border:1px solid var(--gb);border-radius:99px;padding:9px 15px;background:var(--g)}.chips button.on{background:linear-gradient(135deg,var(--a),var(--a2));border:0}
+/* radar */
+.radar{position:relative;aspect-ratio:1;max-width:340px;margin:6px auto 12px;border-radius:50%;overflow:hidden;background:radial-gradient(circle,rgba(79,157,255,.12),rgba(0,0,0,.2) 70%)}
+.rings i{position:absolute;inset:0;margin:auto;width:20%;height:20%;border-radius:50%;border:1.5px solid rgba(79,157,255,.6);animation:ping 3.6s var(--e) infinite;opacity:0}.rings i:nth-child(2){animation-delay:1.2s}.rings i:nth-child(3){animation-delay:2.4s}
+@keyframes ping{0%{transform:scale(.4);opacity:.9}100%{transform:scale(5);opacity:0}}
+.sweep{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,transparent 0 290deg,rgba(79,157,255,.38) 360deg);animation:spin 3.2s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.core{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px;border-radius:50%;border:0;background:linear-gradient(135deg,var(--a),var(--a2));font-size:30px;box-shadow:0 0 40px var(--a2)}
+.blip{position:absolute;transform:translate(-50%,-50%);background:var(--g);border:1px solid var(--gb);border-radius:18px;padding:7px 9px;text-align:center;opacity:.5;animation:pop .6s var(--sp) both}.blip span{font-size:24px;display:block}.blip small{font-size:10.5px;display:block;max-width:74px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.blip.on{opacity:1;box-shadow:0 0 22px rgba(48,209,88,.45);border-color:var(--ok)}.blip.sel{outline:2px solid var(--a)}@keyframes pop{from{transform:translate(-50%,-50%) scale(0)}}
+.rlabel{position:absolute;bottom:9%;left:0;right:0;text-align:center;font-size:12px;color:var(--m)}
+.row{display:flex;align-items:center;gap:12px;width:100%;border-radius:20px;padding:13px 14px;margin-bottom:8px;text-align:left;border:1px solid var(--gb);background:var(--g);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.row .ic{font-size:26px}.row .nm{flex:1;font-weight:600}.row small{display:block;color:var(--m);font-weight:400}.dot{width:10px;height:10px;border-radius:50%;background:#555;transition:.3s}.dot.on{background:var(--ok);box-shadow:0 0 12px var(--ok)}
+/* preview + laser */
+#pv{position:relative;border-radius:18px;overflow:hidden;background:#000;border:1px solid var(--gb);margin:10px 0}#pv video{width:100%;display:block;max-height:34vh;object-fit:contain}
+#laser{position:absolute;width:26px;height:26px;margin:-13px;border-radius:50%;background:radial-gradient(circle,#fff 0 20%,#ff3b5c 40%,transparent 72%);box-shadow:0 0 24px #ff3b5c;opacity:0;transition:opacity .35s;pointer-events:none}#laser.on{opacity:1;transition:opacity .05s}
+.pvs{position:absolute;left:8px;bottom:8px;font-size:12px;padding:3px 9px;border-radius:99px;background:#000a;font-variant-numeric:tabular-nums}
+#pad{height:150px;border-radius:20px;border:1.5px dashed var(--gb);touch-action:none;display:flex;align-items:center;justify-content:center;color:var(--m);background:rgba(0,0,0,.25)}
+/* drop */
+.dz{position:relative;height:150px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#dcard{width:104px;height:104px;border-radius:22px;touch-action:none;display:flex;align-items:center;justify-content:center;font-size:44px;background:linear-gradient(135deg,rgba(79,157,255,.35),rgba(124,92,255,.35));border:1px solid var(--gb);box-shadow:0 14px 34px -10px #000;background-size:cover;background-position:center;cursor:grab}
+.pres img{width:100%;border-radius:14px;max-height:26vh;object-fit:contain;background:#000}.pn{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.pn button{font-size:26px;padding:20px}
+.act{display:flex;flex-direction:column;align-items:center;gap:6px;border-radius:22px;padding:20px 8px;position:relative;border:1px solid var(--gb);background:var(--g);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);font-weight:600}.act b{font-size:36px}.act i{position:absolute;top:8px;right:12px;font-style:normal;color:var(--bad)}
+nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));width:min(92%,420px);display:flex;padding:6px;border-radius:26px;background:rgba(20,22,30,.62);border:1px solid var(--gb);backdrop-filter:blur(30px) saturate(1.8);-webkit-backdrop-filter:blur(30px) saturate(1.8);z-index:5}
+nav button{flex:1;background:none;border:0;color:var(--m);font-size:11px;font-weight:600;padding:8px 4px;position:relative;z-index:1}nav button span{display:block;font-size:22px}nav button.on{color:#fff}
+#ind{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px)/3);border-radius:20px;background:rgba(255,255,255,.13);transition:transform .5s var(--sp)}
+#sheet,#ask{position:fixed;inset:0;z-index:30;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55);animation:fade .25s}@keyframes fade{from{opacity:0}}
+.box{width:100%;max-width:560px;border-radius:30px 30px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom));max-height:90%;overflow:auto;background:rgba(24,26,36,.86);border:1px solid var(--gb);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);animation:rise .5s var(--sp)}@keyframes rise{from{transform:translateY(60%)}}
+.qr{background:#fff;border-radius:18px;padding:9px;width:200px;margin:12px auto}.qr svg{width:100%;display:block}.code{font:800 36px ui-monospace,Menlo,monospace;letter-spacing:.18em;text-align:center}
+#toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translateX(-50%);padding:10px 18px;border-radius:99px;font-size:14px;font-weight:600;z-index:60;max-width:92%;background:rgba(30,32,44,.8);border:1px solid var(--gb);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);animation:drop .45s var(--sp)}@keyframes drop{from{transform:translate(-50%,-140%)}}
+#fly{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5)}#fly .fc{width:min(78vw,320px);border-radius:28px;padding:14px;text-align:center;background:rgba(30,32,44,.85);border:1px solid var(--gb);box-shadow:0 0 80px rgba(79,157,255,.5);animation:fly .85s var(--sp)}
+#fly img{width:100%;border-radius:18px;max-height:46vh;object-fit:contain}@keyframes fly{from{transform:translateY(90vh) scale(.5) rotate(-8deg);opacity:0}}
+/* DISPLAY */
+#tv{position:fixed;inset:0;background:#000;z-index:10}#stage{display:flex;height:100%}.slot{height:100%;position:relative;overflow:hidden;transition:width .45s var(--e);border-right:1px solid #1b2236;touch-action:none}
+.view2{position:absolute;inset:0;background:#05070d}.view2 video,.view2 iframe,.view2 img{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000;object-fit:contain;display:none}
+.note{position:absolute;inset:0;padding:5%;font-size:3vw;white-space:pre-wrap;overflow:auto;display:none}.lbl{position:absolute;left:12px;bottom:10px;font-size:13px;background:#000a;padding:4px 11px;border-radius:99px;backdrop-filter:blur(10px)}
+.empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#2d3a5a;font-size:3.4vw;font-weight:700}
+#cur{position:absolute;width:24px;height:24px;margin:-12px;border-radius:50%;background:radial-gradient(circle,#fff 0 20%,#ff3b5c 45%,transparent 72%);box-shadow:0 0 24px #ff3b5c;display:none;pointer-events:none;transition:transform .15s}
+.rip{position:fixed;width:30px;height:30px;margin:-15px;border-radius:50%;border:2px solid #fff;pointer-events:none;animation:rip .6s var(--e) forwards;z-index:12}@keyframes rip{to{transform:scale(3);opacity:0}}
+#pair{position:absolute;right:16px;top:16px;padding:16px;text-align:center;width:250px;border-radius:24px;z-index:13}#pair .qr{width:160px}
+#hud{position:absolute;left:14px;top:14px;display:flex;gap:6px;z-index:14;transition:opacity .4s;align-items:center}#hud.h{opacity:0;pointer-events:none}#hud .pill,#hud button{background:rgba(20,22,30,.7);border:1px solid var(--gb);border-radius:99px;padding:7px 12px;font-size:13px}
+#tvgo{position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.92);display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center;text-align:center;padding:20px}
+input[type=range]{accent-color:var(--a)}
+.dpw{position:relative;width:100%;aspect-ratio:16/9;border-radius:18px;overflow:hidden;background:#05070d;border:1px solid var(--gb);touch-action:none;margin-top:8px}
+.dpw video,.dpw img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:.55}.dpw canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.dpw .off{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--m);font-size:14px;pointer-events:none}
+.cols{display:flex;gap:10px;align-items:center;margin-top:10px}.cd{width:38px;height:38px;border-radius:50%;border:3px solid transparent;padding:0}.cd.on{border-color:#fff;transform:scale(1.14);box-shadow:0 0 16px currentColor}
+.deck{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.deck button{font-size:19px;padding:16px 4px}
+#ink{position:absolute;inset:0;width:100%;height:100%;z-index:8;pointer-events:none}
+#inv{position:fixed;inset:0;z-index:30;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55);animation:fade .25s}
+.pills{flex-wrap:wrap;justify-content:flex-end;max-width:64%}.pill{font-size:11.5px;padding:4px 9px}#qInfo{white-space:pre-line}
+.fld{margin-top:8px}.fld label{display:flex;gap:8px;align-items:center;font-size:14px}.fld input[type=checkbox]{width:20px;height:20px}
+#err{position:fixed;left:10px;right:10px;bottom:calc(86px + env(safe-area-inset-bottom));z-index:70;padding:12px 14px;border-radius:16px;font-size:13px;line-height:1.35;background:rgba(80,20,24,.92);border:1px solid rgba(255,69,58,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<div class="aura"><i></i><i></i><i></i></div>
+
+<div id="app">
+ <header><h1>Jednota</h1><div class="pills"><span id="q" class="pill" hidden></span><span id="pth" class="pill" hidden></span><span id="net" class="pill">offline</span></div></header>
+ <main id="main">
+  <!-- ZAŘÍZENÍ -->
+  <section class="view on" id="v-dev">
+   <div class="radar g" id="radar"><div class="rings"><i></i><i></i><i></i></div><div class="sweep"></div><div id="blips"></div><button class="core" id="addBtn" aria-label="Přidat zařízení">＋</button><div class="rlabel" id="rlabel"></div></div>
+   <button class="btn w" id="invBtn">🔗 Pozvat přes odkaz</button>
+   <h3>Moje zařízení</h3><div id="devList"></div>
+   <h3>Přijaté</h3><div id="inbox"><div class="hint">Zprávy, schránky a soubory od ostatních se zobrazí tady.</div></div>
+   <h3>Tento přístroj</h3>
+   <div class="card"><input id="myName" placeholder="Název tohoto zařízení">
+    <button class="btn p w" style="margin-top:10px" id="toDisp">🖥 Přepnout na přídavný displej</button>
+    <div class="hint">Tablet, druhý notebook nebo TV se jedním klepnutím promění na displej pro ostatní.</div></div>
+   <h3>Síť a spojení přes internet</h3>
+   <div class="card"><div class="hint" style="padding:0 0 6px">STUN (Google, Cloudflare) a veřejný TURN PeerJS jsou výchozí. Přes mobilní operátory a přísné firewally (CGNAT) je potřeba TURN relay. Nastavení platí i pro režim displeje na tomto zařízení.</div>
+    <div class="fld"><label><input type="checkbox" id="useOR"> Starý veřejný Open Relay (dnes často nefunguje)</label></div>
+    <div class="fld"><input id="turnUrl" placeholder="Vlastní TURN URL, např. turn:standard.relay.metered.ca:80?transport=tcp, turns:standard.relay.metered.ca:443?transport=tcp"></div>
+    <div class="g2 fld"><input id="turnUser" placeholder="Uživatel"><input id="turnCred" type="password" autocomplete="off" placeholder="Heslo / klíč"></div>
+    <div class="fld"><label><input type="checkbox" id="forceRel"> Vynutit relay (test – vždy přes TURN)</label></div>
+    <div class="g2 fld"><button class="btn" id="netTest">🧪 Otestovat TURN</button><button class="btn p" id="netSave">Uložit a restartovat</button></div>
+    <div class="hint" id="netRes"></div></div>
+  </section>
+
+  <!-- CAST -->
+  <section class="view" id="v-cast">
+   <div class="chips" id="chips"></div>
+   <div id="castNone" class="hint">Vyber zařízení nahoře, nebo ho nejdřív přidej.</div>
+
+   <div id="castDisp" hidden>
+    <div class="seg" id="modeSeg"><button data-m="ext">🖥 Přídavný displej</button><button data-m="split" class="on">◧ Split A/B</button></div>
+    <div id="extHint" class="hint" hidden>Pro skutečné <b>rozšíření</b> plochy si v počítači vytvoř virtuální monitor (Windows: Virtual Display Driver, macOS: BetterDisplay, nebo HDMI „dummy“ zástrčka) – objeví se v nabídce sdílení. Bez něj zrcadlíš obrazovku nebo okno.</div>
+    <div class="seg" id="slotSeg" style="margin-top:8px"><button class="on" data-s="A">⬅ Levá půlka</button><button data-s="B">Pravá půlka ➡</button></div>
+    <h3>Poslat na displej</h3>
+    <div class="g2"><button class="btn p" id="bScr">🖥 Obrazovka / okno</button><button class="btn p" id="bCam">📷 Kamera</button></div>
+    <p class="hint" id="cap"></p>
+    <div class="seg" id="qSeg"><button data-q="ultra">📶 Wi-Fi Ultra</button><button data-q="balanced">⚖️ Vyvážený</button><button data-q="eco">📱 Mobil / Eko</button></div>
+    <div class="fld"><label><input type="checkbox" id="autoQ" checked> Automaticky podle sítě a ztráty paketů</label></div>
+    <div class="hint" id="qInfo"></div>
+    <div id="pv" hidden><video id="pvV" muted playsinline autoplay></video><i id="laser"></i><div class="pvs" id="pvStat">čekám…</div></div>
+    <div class="card" style="margin-top:10px"><input id="url" placeholder="Web nebo YouTube odkaz"><button class="btn w" style="margin-top:8px" id="bUrl">🌐 Zobrazit web</button></div>
+    <div class="card"><textarea id="note" rows="2" placeholder="Poznámka na velkou obrazovku"></textarea><button class="btn w" style="margin-top:8px" id="bNote">📝 Zobrazit</button></div>
+    <button class="btn w" id="bClr">⏹ Vyčistit půlku</button>
+    <h3>Rozložení</h3>
+    <div class="g3" id="lay"><button class="btn" data-r="50">50/50</button><button class="btn" data-r="70">70/30</button><button class="btn" data-r="30">30/70</button><button class="btn" data-r="100">Celá levá</button><button class="btn" data-r="0">Celá pravá</button><button class="btn" id="bSw">⇄ Prohodit</button></div>
+    <h3>Media Deck</h3>
+    <div class="card"><div class="deck"><button class="btn" id="mBack">⏪ 10</button><button class="btn p" id="mPlay">⏯</button><button class="btn" id="mFwd">10 ⏩</button></div>
+     <div style="display:flex;gap:12px;align-items:center;margin-top:10px"><button class="btn" id="mMute" style="padding:10px 16px">🔊</button><input type="range" id="vol" min="0" max="100" value="80" style="flex:1"></div>
+     <div class="hint">Ovládá vybranou půlku: živý přenos, YouTube i videa. Převíjení nejde u živého přenosu.</div></div>
+    <h3>Laserové ukazovátko</h3><div id="pad">Veď prstem</div>
+    <h3>Kreslení přes obraz</h3>
+    <div class="card"><button class="btn w" id="drawTgl">✏️ Kreslit: vypnuto</button>
+     <div class="cols" id="cols"><button class="cd on" data-c="#ff3b5c" style="background:#ff3b5c;color:#ff3b5c" aria-label="červená"></button><button class="cd" data-c="#ffd60a" style="background:#ffd60a;color:#ffd60a" aria-label="žlutá"></button><button class="cd" data-c="#30d158" style="background:#30d158;color:#30d158" aria-label="zelená"></button><span style="flex:1"></span><button class="btn" id="inkClr">🧽 Vymazat tahy</button></div>
+     <div class="dpw" id="dpw"><video id="dV" muted playsinline autoplay hidden></video><img id="dI" hidden alt=""><canvas id="dC"></canvas><div class="off" id="dOff">Zapni „Kreslit“ a kresli prstem</div></div></div>
+    <h3>Presenter</h3>
+    <div class="card pres"><button class="btn w" id="bSlides">🎞 Vybrat snímky (fotky / exporty)</button><input type="file" id="slideIn" accept="image/*" multiple hidden>
+     <div id="pres" hidden style="margin-top:10px"><img id="pCur"><div style="display:flex;justify-content:space-between;margin:8px 4px;color:var(--m)"><b id="pNum" style="color:#fff"></b><span id="pTime">00:00</span><span>Další ▸</span></div><img id="pNext" style="max-height:10vh;opacity:.6"><div class="pn"><button class="btn" id="pPrev">◀</button><button class="btn p" id="pFwd">▶</button></div></div></div>
+   </div>
+
+   <div id="castDev" hidden>
+    <div class="card"><textarea id="txt" rows="3" placeholder="Text nebo odkaz"></textarea><button class="btn p w" style="margin-top:8px" id="bTxt">Odeslat</button></div>
+    <button class="btn w" id="bClip">📋 Poslat moji schránku jedním klepnutím</button>
+   </div>
+
+   <div id="castDrop" hidden>
+    <h3>Continuity Drop</h3>
+    <div class="card dz g" id="dz"><div id="dcard" hidden></div><button class="btn" id="bPick">Vybrat fotku / soubor</button><input type="file" id="file" hidden></div>
+    <p class="hint">Švihni kartu prstem nahoru – přeletí na vybrané zařízení.</p>
+   </div>
+   <button class="btn w" style="margin-top:18px;color:var(--bad)" id="forget" hidden>Zapomenout toto zařízení</button>
+  </section>
+
+  <!-- AKCE -->
+  <section class="view" id="v-act">
+   <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:10px 6px">Rychlé akce</h3><button class="btn" id="editAct">✎</button></div>
+   <div class="g2" id="acts"></div>
+   <div class="card" style="margin-top:12px"><b>Nová akce</b>
+    <div class="g2" style="margin-top:8px"><input id="aIc" placeholder="Emoji 💡" maxlength="4"><input id="aNm" placeholder="Název"></div>
+    <select id="aTp" style="margin-top:8px"><option value="hook">Webhook (HTTPS požadavek)</option><option value="link">Odkaz / zkratka v jiné appce</option></select>
+    <input id="aUr" placeholder="https://…  nebo  shortcuts://run-shortcut?name=Světla" style="margin-top:8px">
+    <button class="btn p w" style="margin-top:8px" id="aAdd">Přidat</button>
+    <p class="hint">Webhook: Home Assistant, IFTTT, Shelly Cloud, Make… Odkaz: iOS Zkratky, appka výrobce nebo web.</p></div>
+  </section>
+ </main>
+ <nav id="tabs"><i id="ind"></i><button class="on" data-t="dev"><span>📡</span>Zařízení</button><button data-t="cast"><span>🪄</span>Cast</button><button data-t="act"><span>⚡</span>Akce</button></nav>
+</div>
+
+<div id="sheet" hidden><div class="box">
+ <b style="font-size:22px">Přidat zařízení</b>
+ <p class="hint">Naskenuj QR foťákem druhého zařízení, nebo na něm zadej kód. Pak jen potvrď.</p>
+ <div class="qr" id="myQr"></div><div class="code" id="myCode"></div>
+ <h3>Nebo zadej kód druhého zařízení</h3>
+ <div class="g2"><input id="joinCode" placeholder="KÓD" maxlength="6" style="text-transform:uppercase;font-weight:800;letter-spacing:.2em"><button class="btn p" id="joinBtn">Připojit</button></div>
+ <button class="btn w" style="margin-top:12px" id="closeSheet">Hotovo</button>
+</div></div>
+<div id="ask" hidden><div class="box"><b id="askT" style="font-size:21px"></b><div class="g2" style="margin-top:16px"><button class="btn" id="askNo">Odmítnout</button><button class="btn p" id="askYes">Povolit</button></div></div></div>
+<div id="inv" hidden><div class="box"><b style="font-size:22px">Pozvat přes odkaz</b>
+ <p class="hint">Odkaz pošli kamarádovi. Po otevření se k tobě připojí sám, bez QR i potvrzování. Platí 24 hodin a jen pro jedno zařízení. Tvoje zařízení musí být online.</p>
+ <input id="invUrl" readonly><div class="g2" style="margin-top:10px"><button class="btn p" id="invShare">Sdílet</button><button class="btn" id="invCopy">Kopírovat</button></div>
+ <button class="btn w" style="margin-top:10px" id="invClose">Hotovo</button></div></div>
+<div id="fly" hidden><div class="fc"><div id="flyBody"></div><b id="flyT" style="display:block;margin:8px 0"></b><button class="btn p w" id="flyOk">Hotovo</button></div></div>
+<div id="toast" hidden></div>
+<div id="err" hidden></div>
+<label style="position:fixed;opacity:0;pointer-events:none;left:-99px"><input type="checkbox" switch id="hx"></label>
+
+<!-- DISPLAY MODE -->
+<div id="tv" hidden>
+ <div id="stage"><div class="slot" id="sA"></div><div class="slot" id="sB"></div></div><div id="cur"></div><canvas id="ink"></canvas>
+ <div id="hud"><span class="pill" id="hms">– ms</span><span class="pill" id="hfps">– fps</span><button id="hQr">＋ Párovat</button><button id="hFs">⛶</button><button id="hExit">✕</button></div>
+ <div id="pair" class="g"><b>📺 <span id="tvName"></span></b><div class="qr" id="tvQr"></div><div class="code" id="tvCode"></div><div style="font-size:12px;color:var(--m);margin-top:6px">Jednota → Přidat zařízení</div></div>
+ <div id="tvgo"><div class="radar g" style="width:220px"><div class="rings"><i></i><i></i><i></i></div><div class="sweep"></div></div><h1 style="margin:0">Přídavný displej</h1><div class="hint">Displej zůstane rozsvícený a čeká na připojení.</div><button class="btn p" id="tvStart" style="font-size:20px;padding:16px 34px">Spustit</button><button class="btn" id="tvExit">Zpět na normální režim</button></div>
+</div>
+
+<script>
+function showErr(t){const e=document.getElementById('err');if(!e)return;e.hidden=false;e.textContent='⚠ '+t+' (klepni pro skrytí)';e.onclick=()=>e.hidden=true}
+addEventListener('error',e=>showErr((e.message||'Chyba skriptu')+(e.lineno?' [řádek '+e.lineno+']':'')));
+addEventListener('unhandledrejection',e=>{const r=e.reason;showErr('Chyba: '+(r&&r.message||r))});
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LS={get:(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch{return d}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
+const KEY='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',rnd=n=>Array.from({length:n},()=>KEY[Math.random()*KEY.length|0]).join('');
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+const UA=navigator.userAgent,mob=/iPhone|Android.*Mobile/.test(UA),tabl=/iPad|Android(?!.*Mobile)/.test(UA)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const isDisp=['tv','display'].includes(LS.get('mode','phone'));
+const myIcon=()=>isDisp?'📺':mob?'📱':tabl?'📲':'💻';
+let me=LS.get('me',null);if(!me){me={id:'lbx'+rnd(6),name:/iPhone/.test(UA)?'iPhone':/iPad/.test(UA)?'iPad':/Android/.test(UA)?'Android':/Mac/.test(UA)?'Mac':'Počítač'};LS.set('me',me)}
+let devs=LS.get('devs',{});Object.values(devs).forEach(d=>{if(d.type==='tv')d.type='display';if(d.type==='phone')d.type='device'});
+let acts=LS.get('acts',[]),sel=null,slot='A',editing=false,tvRatio=50,manualTs=0,quality=LS.get('q','ultra'),autoQ=LS.get('autoQ',true),showPair=false,wantWake=false;
+const conns=new Map(),calls={},inbox=[];
+const myCode=()=>me.id.slice(3),joinUrl=()=>location.origin+location.pathname+'#join='+myCode();
+const ok=id=>{const c=conns.get(id);return !!(c&&c.open&&c.ok)};
+const pendingInv={};let invites=LS.get('inv',{});
+const hello=id=>({t:'hello',name:me.name,type:isDisp?'display':'device',icon:myIcon(),inv:(id&&pendingInv[id])||undefined});
+function makeInvite(){const now=Date.now();Object.keys(invites).forEach(k=>{if(invites[k]<now)delete invites[k]});const k=rnd(8);invites[k]=now+864e5;LS.set('inv',invites);return location.origin+location.pathname+'#g='+myCode()+'.'+k}
+function useInvite(k){if(k&&invites[k]&&invites[k]>Date.now()){delete invites[k];LS.set('inv',invites);return true}return false}
+// ---------- UX helpery ----------
+function hap(p=8){try{if(navigator.vibrate)navigator.vibrate(p);else $('#hx').parentNode.click()}catch(e){}}
+document.addEventListener('pointerdown',e=>{if(e.target.closest('button,.row,.blip'))hap(8)},{passive:true});
+function toast(t){const e=$('#toast');e.hidden=false;e.style.animation='none';void e.offsetWidth;e.style.animation='';e.textContent=t;clearTimeout(toast.h);toast.h=setTimeout(()=>e.hidden=true,3000)}
+function drawQR(el,t){try{const q=qrcode(0,'M');q.addData(t);q.make();el.innerHTML=q.createSvgTag({cellSize:4,margin:0,scalable:true})}catch(e){}}
+async function wake(){try{if(wantWake&&!wake.l&&navigator.wakeLock){wake.l=await navigator.wakeLock.request('screen');wake.l.addEventListener('release',()=>wake.l=null)}else if(!wantWake&&wake.l){await wake.l.release();wake.l=null}}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')wake()});
+const T=['dev','cast','act'];
+function tab(t){const i=T.indexOf(t);T.forEach((n,j)=>{const v=$('#v-'+n);v.classList.toggle('on',j===i);v.classList.toggle('prev',j<i)});
+ $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));$('#ind').style.transform=`translateX(${i*100}%)`;tab.cur=t}
+$$('#tabs button').forEach(b=>b.onclick=()=>tab(b.dataset.t));tab('dev');
+{let sx=0,sy=0;const m=$('#main');m.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+ m.addEventListener('touchend',e=>{if(e.target.closest('#pad,#dcard,input,textarea,.chips'))return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+  if(Math.abs(dx)>80&&Math.abs(dy)<45){const i=T.indexOf(tab.cur);tab(T[clamp(i+(dx<0?1:-1),0,2)]);hap(6)}},{passive:true})}
+
+// ================= SPOJENÍ (PeerJS: cloud jen na handshake, data a video jdou P2P) =================
+let peer,idTries=0,firstOpen=true,onCall=()=>{};
+function netState(s){const n=$('#net');n.textContent={on:'online',re:'obnovuji…',off:'offline'}[s];n.className='pill'+(s==='on'?' ok':s==='re'?' warn':'')}
+function initPeer(){if(typeof Peer==='undefined'){netState('off');if(!initPeer.w){initPeer.w=1;showErr('Knihovna PeerJS se nenačetla (blokovaná síť nebo náhled v aplikaci). Otevři Jednotu v Safari/Chrome z hostované adresy, např. GitHub Pages.')}return}try{peer=new Peer(me.id,{config:netCfg()})}catch(e){peer=null;netState('off');if(!initPeer.w){initPeer.w=1;showErr('Spojení se nepodařilo spustit: '+String(e&&e.message||e).replace(/\.$/,'')+'. Prostředí blokuje síť/WebRTC (např. náhled v aplikaci). Otevři Jednotu v Safari z hostované adresy.')}return}
+ peer.on('open',()=>{idTries=0;netState('on');Object.keys(devs).forEach(connect);if(firstOpen){firstOpen=false;hashJoin()}reviveCalls()});
+ peer.on('disconnected',()=>{netState('re');try{peer.reconnect()}catch(e){}});
+ peer.on('close',()=>netState('off'));
+ peer.on('error',e=>{if(e.type==='unavailable-id'){if(++idTries<6)setTimeout(()=>{try{peer.destroy()}catch(x){}initPeer()},2000);else{me.id='lbx'+rnd(6);LS.set('me',me);location.reload()}}
+  else if(e.type==='peer-unavailable'){if(Date.now()-manualTs<9000)toast('Zařízení není online / špatný kód')}
+  else if(['network','server-error','socket-error','socket-closed'].includes(e.type))netState('re')});
+ peer.on('connection',c=>setup(c));peer.on('call',c=>onCall(c))}
+initPeer();
+function connect(id){if(!peer)return;const o=conns.get(id);if(o&&(o.open||Date.now()-(o.ts||0)<8000))return;if(o)try{o.close()}catch(e){}const c=peer.connect(id,{reliable:true});c.out=true;c.ts=Date.now();setup(c)}
+function setup(c){const old=conns.get(c.peer);if(old&&old!==c&&old.open)old.close();conns.set(c.peer,c);
+ c.on('open',()=>c.send(hello(c.peer)));c.on('data',m=>onData(c,m));c.on('close',()=>{if(conns.get(c.peer)===c)conns.delete(c.peer);ui();softReconnect(c.peer)});c.on('error',()=>{})}
+function trust(c){const m=c.meta||{};devs[c.peer]={name:m.name||'Zařízení',type:m.type||'device',icon:m.icon||'📱'};LS.set('devs',devs);c.ok=true;ui()}
+let askQ=[];
+function ask(c){askQ.push(c);if(askQ.length===1)nextAsk()}
+function nextAsk(){const c=askQ[0];if(!c){$('#ask').hidden=true;return}$('#askT').textContent='Povolit zařízení „'+c.meta.name+'“?';$('#ask').hidden=false;hap([10,30,10])}
+$('#askYes').onclick=()=>{const c=askQ.shift();trust(c);c.send({t:'ok'});afterOk(c);nextAsk()};
+$('#askNo').onclick=()=>{const c=askQ.shift();c.send({t:'deny'});setTimeout(()=>c.close(),300);nextAsk()};
+function afterOk(c){c.pongAt=Date.now();if(isDisp)c.send({t:'state',ratio:tvRatio,ar:innerWidth/innerHeight});setTimeout(pathTick,1500);reviveCalls();ui()}
+function onData(c,m){
+ if(m.t==='hello'){c.meta={name:String(m.name).slice(0,30),type:m.type==='display'?'display':'device',icon:String(m.icon||'📱').slice(0,4)};
+  if(devs[c.peer]){trust(c);c.send({t:'ok'});afterOk(c)}else if(!c.out){if(useInvite(m.inv)){trust(c);c.send({t:'ok'});afterOk(c);toast('Připojeno: '+c.meta.name)}else ask(c)}return}
+ if(m.t==='ok'){delete pendingInv[c.peer];trust(c);if(c.out)toast('Připojeno: '+c.meta.name);hap([10,40,10]);afterOk(c);return}
+ if(m.t==='deny'){toast('Druhá strana připojení odmítla');c.close();return}
+ if(!c.ok)return;c.pongAt=Date.now();
+ if(m.t==='ping')c.send({t:'pong',ts:m.ts});
+ else if(m.t==='pong'){c.rtt=Math.round(performance.now()-m.ts);ui()}
+ else if(m.t==='state'){tvRatio=m.ratio;if(m.ar)setAR(m.ar);ui()}
+ else if(m.t==='msg'){inbox.unshift({from:c.meta.name,text:String(m.v)});ui();toast('📩 '+c.meta.name);hap([15,30,15])}
+ else if(m.t==='clip'){const v=String(m.v);inbox.unshift({from:c.meta.name,text:v,clip:1});navigator.clipboard.writeText(v).then(()=>toast('📋 Schránka od '+c.meta.name+' vložena')).catch(()=>toast('📋 Schránka od '+c.meta.name+' – klepni na Kopírovat'));ui();hap([15,30,15])}
+ else if(m.t==='file'){const u=URL.createObjectURL(new Blob([m.data],{type:m.type}));inbox.unshift({from:c.meta.name,file:u,name:m.name,img:/^image\//.test(m.type)});flyIn(u,m.name,c.meta.name,/^image\//.test(m.type));ui()}
+ else if(m.t==='draw'&&isDisp)inkDraw(m);
+ else if(m.t==='touch')onTouch(m);
+ else if(m.t==='stat')onStat(m);
+ else if(m.t==='cmd'&&isDisp)tvCmd(m)}
+function hashJoin(){const g=location.hash.match(/g=([A-Za-z0-9]{6})\.([A-Za-z0-9]{8})/);
+ if(g){history.replaceState(null,'',location.pathname+location.search);const id='lbx'+g[1].toUpperCase();if(id===me.id)return toast('To je tvůj vlastní odkaz');pendingInv[id]=g[2].toUpperCase();manualTs=Date.now();connect(id);toast('Připojuji se…');return}
+ const m=location.hash.match(/join=([A-Za-z0-9]{6})/);if(m){history.replaceState(null,'',location.pathname+location.search);joinCode(m[1])}}
+function joinCode(code){if(!peer)return toast('Spojení není dostupné (knihovna se nenačetla)');code=code.toUpperCase();if(code===myCode())return toast('To je tvůj vlastní kód');manualTs=Date.now();connect('lbx'+code);toast('Čekám na potvrzení na druhém zařízení…')}
+// --- Smart Auto-Reconnect: heartbeat + visibilitychange ---
+function softReconnect(id){setTimeout(()=>{if(devs[id]&&peer&&peer.open&&!ok(id))connect(id)},1200)}
+function heal(){if(!peer||peer.destroyed){netState('re');initPeer();return}
+ if(peer.disconnected){netState('re');try{peer.reconnect()}catch(e){}return}
+ Object.keys(devs).forEach(id=>{const c=conns.get(id);if(!c||!c.open)connect(id)});reviveCalls()}
+setInterval(()=>{if(document.visibilityState==='visible')heal()},4000);
+setInterval(()=>{const now=Date.now();conns.forEach(c=>{if(!(c.ok&&c.open))return;c.send({t:'ping',ts:performance.now()});if(c.pongAt&&now-c.pongAt>9000){try{c.close()}catch(e){}}})},3000);
+function wakeUp(){heal();conns.forEach(c=>c.ok&&c.open&&c.send({t:'ping',ts:performance.now()}));
+ setTimeout(()=>{conns.forEach(c=>{if(c.ok&&c.open&&Date.now()-(c.pongAt||0)>4000)try{c.close()}catch(e){}});heal()},2500);wake()}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')wakeUp()});
+addEventListener('pageshow',e=>{if(e.persisted)wakeUp()});addEventListener('online',wakeUp);addEventListener('focus',wakeUp);
+function reviveCalls(){Object.keys(calls).forEach(k=>{const x=calls[k];if(!x||!x.stream.active||!ok(x.to)||Date.now()-x.t<10000)return;const st=x.call.peerConnection&&x.call.peerConnection.connectionState;
+ if(x.call.open&&st!=='failed'&&st!=='closed'&&st!=='disconnected')return;try{x.call.close()}catch(e){}
+ const call=peer.call(x.to,x.stream,{metadata:{slot:k,name:me.name}});calls[k]={call,stream:x.stream,to:x.to,t:Date.now()};tune(call,quality)})}
+
+// ================= SÍŤ: STUN/TURN, adaptivní kvalita, typ spojení =================
+function netCfg(o){const n=Object.assign({or:false,url:'',user:'',cred:'',force:false},LS.get('net',{}),o||{});
+ const ice=[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']},{urls:'stun:stun.cloudflare.com:3478'}];
+ ice.push({urls:['turn:eu-0.turn.peerjs.com:3478','turn:us-0.turn.peerjs.com:3478'],username:'peerjs',credential:'peerjsp'});
+ if(n.or)ice.push({urls:['turn:openrelay.metered.ca:80','turn:openrelay.metered.ca:443','turns:openrelay.metered.ca:443?transport=tcp'],username:'openrelayproject',credential:'openrelayproject'});
+ const urls=String(n.url||'').split(/[\s,]+/).filter(u=>/^(turns?|stuns?):/i.test(u));if(urls.length)ice.push(n.user||n.cred?{urls,username:n.user,credential:n.cred}:{urls});
+ return{iceServers:ice,iceTransportPolicy:n.force?'relay':'all',iceCandidatePoolSize:2}}
+const Q={ultra:{name:'Wi-Fi Ultra',fps:60,br:8e6,sc:1,hint:'motion',deg:'maintain-framerate',lbl:'Wi-Fi Ultra: 60 FPS, až 8 Mb/s (≈ 3,6 GB/h)'},
+ balanced:{name:'Vyvážený',fps:30,br:3e6,sc:1,hint:'motion',deg:'balanced',lbl:'Vyvážený: 30 FPS, až 3 Mb/s (≈ 1,3 GB/h)'},
+ eco:{name:'Mobil / Eko',fps:24,br:8e5,sc:2,hint:'detail',deg:'maintain-framerate',lbl:'Mobilní data / Eko: 24 FPS, ≈ 0,8 Mb/s, poloviční rozlišení (≈ 0,36 GB/h)'}};
+const RANK={eco:0,balanced:1,ultra:2},qos={loss:0,rtt:null,kbps:null,good:0,bad:0};
+if(!Q[quality])quality='ultra';
+function netHint(){const n=navigator.connection;if(!n)return{};return{cell:n.type==='cellular',slow:['slow-2g','2g','3g'].includes(n.effectiveType),save:!!n.saveData,type:n.type,eff:n.effectiveType}}
+function pathShort(c){return c&&c.path?{lan:'P2P · LAN',p2p:'P2P',relay:'Relay'}[c.path]:''}
+async function pathOf(pc){const rep=await pc.getStats(),m={};let pair=null;rep.forEach(r=>m[r.id]=r);
+ rep.forEach(r=>{if(r.type==='transport'&&r.selectedCandidatePairId)pair=m[r.selectedCandidatePairId]});
+ if(!pair)rep.forEach(r=>{if(r.type==='candidate-pair'&&r.nominated&&r.state==='succeeded')pair=r});
+ if(!pair)return null;const l=m[pair.localCandidateId],r2=m[pair.remoteCandidateId];if(!l||!r2)return null;
+ const t=[l.candidateType,r2.candidateType];return{path:t.includes('relay')?'relay':(t[0]==='host'&&t[1]==='host')?'lan':'p2p',net:l.networkType}}
+async function pathTick(){for(const c of [...conns.values()]){if(!(c.ok&&c.open)||!c.peerConnection)continue;try{const r=await pathOf(c.peerConnection);if(r){c.path=r.path;c.net=r.net}}catch(e){}}ui();qInfo()}
+setInterval(pathTick,5000);
+function applyQ(call){const q=Q[quality];try{call.peerConnection.getSenders().forEach(s=>{if(!s.track||s.track.kind!=='video')return;const p=s.getParameters();if(!p.encodings||!p.encodings.length)p.encodings=[{}];const e=p.encodings[0];
+  e.maxFramerate=q.fps;e.maxBitrate=q.br;e.scaleResolutionDownBy=q.sc;p.degradationPreference=q.deg;s.setParameters(p).catch(()=>{});try{s.track.contentHint=q.hint}catch(x){}
+  s.track.applyConstraints({frameRate:{ideal:q.fps,max:q.fps}}).catch(()=>{})})}catch(e){}}
+function tune(call){setTimeout(()=>applyQ(call),1200);setTimeout(()=>applyQ(call),4000)}
+function hint(stream){stream.getVideoTracks().forEach(t=>{try{t.contentHint=Q[quality].hint}catch(e){}})}
+function setQuality(q,silent){quality=q;LS.set('q',q);$$('#qSeg [data-q]').forEach(b=>b.classList.toggle('on',b.dataset.q===q));Object.values(calls).forEach(x=>{hint(x.stream);applyQ(x.call)});qInfo();if(!silent)hap(8)}
+function wantQ(){const h=netHint(),relay=Object.values(calls).some(x=>{const c=conns.get(x.to);return c&&c.path==='relay'}),rt=qos.rtt||0;let w='ultra';
+ if(h.slow||h.save||qos.loss>.06||rt>220||(qos.kbps&&qos.kbps<1500))w='eco';
+ else if(h.cell||relay||qos.loss>.02||rt>90||(qos.kbps&&qos.kbps<5000))w='balanced';return w}
+async function qosTick(){const ks=Object.keys(calls);if(!ks.length){qos.loss=0;qos.rtt=null;qos.kbps=null;qInfo();return}
+ let loss=0,rtt=null,kb=null;
+ for(const k of ks){const pc=calls[k]&&calls[k].call.peerConnection;if(!pc)continue;try{(await pc.getStats()).forEach(r=>{
+  if(r.type==='remote-inbound-rtp'&&r.kind==='video'){if(r.fractionLost!=null)loss=Math.max(loss,r.fractionLost);if(r.roundTripTime!=null)rtt=Math.round(r.roundTripTime*1000)}
+  if(r.type==='candidate-pair'&&r.nominated&&r.availableOutgoingBitrate)kb=Math.round(r.availableOutgoingBitrate/1000)})}catch(e){}}
+ qos.loss=loss;qos.rtt=rtt;qos.kbps=kb;autoAdapt();qInfo()}
+function autoAdapt(){if(!autoQ||!Object.keys(calls).length)return;const w=wantQ();
+ if(RANK[w]<RANK[quality]){qos.bad++;qos.good=0;if(qos.bad>=2){qos.bad=0;setQuality(w,true);toast('Auto: '+Q[w].name)}}
+ else if(RANK[w]>RANK[quality]){qos.good++;qos.bad=0;if(qos.good>=6){qos.good=0;const up=['eco','balanced','ultra'][RANK[quality]+1];setQuality(up,true);toast('Auto: '+Q[up].name)}}
+ else qos.good=qos.bad=0}
+function qInfo(){const h=netHint();let n=h.type?(h.type==='cellular'?'📱 mobilní '+(h.eff||''):h.type==='wifi'?'📶 Wi-Fi':'🔌 '+h.type):(navigator.connection?'síť: '+(h.eff||'?'):'Safari typ sítě nehlásí – kvalita se měří podle ztráty paketů');
+ let live='';if(Object.keys(calls).length)live='\nZtráta '+(qos.loss*100).toFixed(1).replace('.',',')+' %'+(qos.rtt!=null?' · RTT '+qos.rtt+' ms':'')+(qos.kbps?' · odhad '+(qos.kbps/1000).toFixed(1).replace('.',',')+' Mb/s':'');
+ const el=$('#qInfo');if(el)el.textContent=Q[quality].lbl+'\n'+n+live}
+setInterval(qosTick,4000);
+$$('#qSeg [data-q]').forEach(b=>b.onclick=()=>{autoQ=false;LS.set('autoQ',false);$('#autoQ').checked=false;setQuality(b.dataset.q)});
+$('#autoQ').checked=autoQ;$('#autoQ').onchange=e=>{autoQ=e.target.checked;LS.set('autoQ',autoQ);if(autoQ)setQuality(wantQ(),true)};
+if(navigator.connection)navigator.connection.addEventListener('change',()=>{wakeUp();if(autoQ)setQuality(wantQ(),true);qInfo()});
+setQuality(autoQ?wantQ():quality,true);
+{const n=LS.get('net',{or:false,url:'',user:'',cred:'',force:false});$('#useOR').checked=!!n.or;$('#turnUrl').value=n.url||'';$('#turnUser').value=n.user||'';$('#turnCred').value=n.cred||'';$('#forceRel').checked=!!n.force}
+const netForm=()=>({or:$('#useOR').checked,url:$('#turnUrl').value.trim(),user:$('#turnUser').value.trim(),cred:$('#turnCred').value.trim(),force:$('#forceRel').checked});
+$('#netSave').onclick=()=>{LS.set('net',netForm());toast('Uloženo – restartuji spojení…');setTimeout(()=>location.reload(),700)};
+$('#netTest').onclick=async()=>{const r=$('#netRes');r.textContent='Testuji TURN (až 8 s)…';let got=false,pc;
+ try{pc=new RTCPeerConnection(netCfg(Object.assign(netForm(),{force:true})));pc.createDataChannel('t');pc.onicecandidate=e=>{if(e.candidate&&/ typ relay /.test(e.candidate.candidate))got=true};
+  await pc.setLocalDescription(await pc.createOffer());await new Promise(res=>{const t=setTimeout(res,8000);pc.onicegatheringstatechange=()=>{if(pc.iceGatheringState==='complete'){clearTimeout(t);res()}}})}catch(e){}
+ try{pc.close()}catch(e){}r.textContent=got?'✅ TURN funguje – relay adresa získána.':'❌ Relay adresa nezískána. Zkontroluj URL/údaje, zkus jiný TURN, nebo je port blokovaný.'};
+
+// ================= UI =================
+const ui=()=>{if(ui.r)return;ui.r=requestAnimationFrame(()=>{ui.r=0;render()})};
+function render(){
+ const ids=Object.keys(devs),on=ids.filter(ok).length;
+ const B=$('#blips');B.innerHTML='';ids.forEach((id,i)=>{const a=-Math.PI/2+i*2*Math.PI/ids.length,b=document.createElement('button');b.className='blip'+(ok(id)?' on':'')+(id===sel?' sel':'');
+  b.style.left=50+37*Math.cos(a)+'%';b.style.top=50+37*Math.sin(a)+'%';b.innerHTML=`<span>${esc(devs[id].icon||'📱')}</span><small>${esc(devs[id].name)}</small>`;b.onclick=()=>{sel=id;tab('cast');render()};B.append(b)});
+ $('#rlabel').textContent=ids.length?(on?on+' online':'Hledám zařízení…'):'Přidej první zařízení';
+ const L=$('#devList');L.innerHTML=ids.length?'':'<div class="hint">Zatím nic. Klepni na ＋ v radaru.</div>';
+ ids.forEach(id=>{const d=devs[id],o=ok(id),c=conns.get(id),b=document.createElement('button');b.className='row';
+  b.innerHTML=`<span class="ic">${esc(d.icon||'📱')}</span><span class="nm">${esc(d.name)}<small>${o?(c.rtt!=null?c.rtt+' ms':'online')+(c.path?' · '+pathShort(c):''):'offline'}${d.type==='display'?' · displej':''}</small></span><i class="dot ${o?'on':''}"></i>`;
+  b.onclick=()=>{sel=id;tab('cast');render()};L.append(b)});
+ const ch=$('#chips');ch.innerHTML='';ids.forEach(id=>{const b=document.createElement('button');b.className=id===sel?'on':'';b.textContent=(devs[id].icon||'📱')+' '+devs[id].name+(ok(id)?'':' · offline');b.onclick=()=>{sel=id;render()};ch.append(b)});
+ const d=sel&&devs[sel];$('#castNone').hidden=!!d;$('#castDisp').hidden=!(d&&d.type==='display');$('#castDev').hidden=!(d&&d.type==='device');$('#castDrop').hidden=!d;$('#forget').hidden=!d;
+ $$('#lay [data-r]').forEach(b=>b.classList.toggle('on',+b.dataset.r===tvRatio));
+ const q=$('#q'),c=sel&&conns.get(sel);if(c&&ok(sel)&&c.rtt!=null){q.hidden=false;q.textContent='● '+c.rtt+' ms';q.className='pill '+(c.rtt<35?'ok':c.rtt<90?'warn':'bad')}else q.hidden=true;
+ const pb=$('#pth');if(c&&ok(sel)&&c.path){pb.hidden=false;pb.textContent=({lan:'⚡ P2P · LAN',p2p:'🌐 P2P',relay:'🛰 Relay'})[c.path]+((c.net==='cellular'||netHint().cell)?' · 📱':'');pb.className='pill '+(c.path==='relay'?'warn':'ok');
+  pb.title=({lan:'Přímé spojení v jedné síti',p2p:'Přímé spojení přes internet (STUN)',relay:'Přes vzdálený relay (TURN): vyšší latence, ale prochází firewallem a mobilní sítí'})[c.path]}else pb.hidden=true;
+ const I=$('#inbox');if(inbox.length){I.innerHTML='';inbox.slice(0,15).forEach(i=>{const e=document.createElement('div');e.className='card';
+  if(i.file)e.innerHTML=`<small class="hint">${esc(i.from)}</small>${i.img?`<img src="${i.file}" style="width:100%;border-radius:14px;margin:6px 0">`:''}<br><a href="${i.file}" download="${esc(i.name)}" style="color:var(--a)">⬇ ${esc(i.name)}</a>`;
+  else{e.innerHTML=`<small class="hint">${esc(i.from)}${i.clip?' · schránka':''}</small><div style="word-break:break-word;margin:4px 0"></div>`;const dv=e.querySelector('div');
+   i.text.split(/(https?:\/\/\S+)/g).forEach(p=>{if(/^https?:\/\//.test(p)){const a=document.createElement('a');a.href=p;a.target='_blank';a.rel='noopener';a.style.color='var(--a)';a.textContent=p;dv.append(a)}else dv.append(p)});
+   const cb=document.createElement('button');cb.className='btn';cb.textContent='Kopírovat';cb.onclick=()=>navigator.clipboard.writeText(i.text).then(()=>toast('Zkopírováno'));e.append(cb)}
+  I.append(e)})}
+ if(isDisp){const n=[...conns.values()].filter(c=>c.ok&&c.open).length;$('#pair').hidden=n>0&&!showPair}}
+$('#myName').value=me.name;$('#myName').onchange=e=>{me.name=e.target.value.trim()||me.name;LS.set('me',me);conns.forEach(c=>c.open&&c.send(hello(c.peer)))};
+$('#addBtn').onclick=()=>{$('#myCode').textContent=myCode();drawQR($('#myQr'),joinUrl());$('#sheet').hidden=false};
+$('#closeSheet').onclick=()=>$('#sheet').hidden=true;
+$('#joinBtn').onclick=()=>{const c=$('#joinCode').value.trim();if(c.length===6){joinCode(c);$('#sheet').hidden=true}};
+$('#forget').onclick=()=>{if(!sel)return;const c=conns.get(sel);if(c)c.close();delete devs[sel];LS.set('devs',devs);sel=null;ui()};
+$('#toDisp').onclick=()=>{LS.set('mode','display');location.reload()};
+$('#tvExit').onclick=$('#hExit').onclick=()=>{LS.set('mode','phone');location.reload()};
+function flyIn(url,name,from,img){const b=$('#flyBody');b.innerHTML=img?`<img src="${url}">`:'<div style="font-size:64px">📄</div>';$('#flyT').textContent=(img?'📷 ':'')+name+' – od '+from;$('#fly').hidden=false;hap([20,40,20,40,30]);clearTimeout(flyIn.h);flyIn.h=setTimeout(()=>$('#fly').hidden=true,7000)}
+$('#flyOk').onclick=()=>$('#fly').hidden=true;
+
+// --- Cast na displej ---
+const sendTo=m=>{const c=conns.get(sel);if(!ok(sel)){toast('Zařízení je offline');return false}c.send(m);return true};
+$$('#slotSeg button').forEach(b=>b.onclick=()=>{slot=b.dataset.s;$$('#slotSeg button').forEach(x=>x.classList.toggle('on',x===b))});
+$$('#modeSeg button').forEach(b=>b.onclick=()=>{$$('#modeSeg button').forEach(x=>x.classList.toggle('on',x===b));const ext=b.dataset.m==='ext';$('#extHint').hidden=!ext;
+ if(ext){slot='A';$$('#slotSeg button').forEach(x=>x.classList.toggle('on',x.dataset.s==='A'));sendTo({t:'cmd',c:'layout',ratio:100})}else sendTo({t:'cmd',c:'layout',ratio:50})});
+const md=navigator.mediaDevices;
+if(!md||!md.getDisplayMedia){$('#bScr').disabled=true;$('#cap').textContent='Sdílení obrazovky prohlížeč v iPhonu a iPadu neumí. Funguje v Chrome/Edge na počítači a Androidu. '}
+if(!md)$('#bCam').disabled=true;
+
+function stopCall(k){const x=calls[k];if(x){x.call.close();x.stream.getTracks().forEach(t=>t.stop());delete calls[k]}$('#pv').hidden=!Object.keys(calls).length;if(!Object.keys(calls).length)dBg(null);setWake()}
+function setWake(){wantWake=isDisp&&!$('#tvgo').hidden===false||Object.keys(calls).length>0;wake()}
+function publish(stream){if(!ok(sel)){stream.getTracks().forEach(t=>t.stop());return toast('Zařízení je offline')}stopCall(slot);if(autoQ)setQuality(wantQ(),true);hint(stream);
+ const k=slot,call=peer.call(sel,stream,{metadata:{slot:k,name:me.name}});calls[k]={call,stream,to:sel,t:Date.now()};tune(call,quality);
+ stream.getTracks().forEach(t=>t.onended=()=>stopCall(k));$('#pvV').srcObject=stream;$('#pv').hidden=false;dBg(stream);setWake();hap([12,30,12])}
+$('#bScr').onclick=async()=>{try{publish(await md.getDisplayMedia({video:{frameRate:{ideal:60,max:60},width:{ideal:1920},height:{ideal:1080},cursor:'always'},audio:true,selfBrowserSurface:'exclude',systemAudio:'include'}))}catch(e){if(e.name!=='NotAllowedError')toast(e.message)}};
+$('#bCam').onclick=async()=>{try{publish(await md.getUserMedia({video:{facingMode:'environment',frameRate:{ideal:60}},audio:true}))}catch(e){toast(e.message)}};
+$('#bUrl').onclick=()=>{stopCall(slot);sendTo({t:'cmd',c:'url',slot,value:$('#url').value})};
+$('#bNote').onclick=()=>{stopCall(slot);sendTo({t:'cmd',c:'note',slot,value:$('#note').value})};
+$('#bClr').onclick=()=>{stopCall(slot);sendTo({t:'cmd',c:'clear',slot})};
+$$('#lay [data-r]').forEach(b=>b.onclick=()=>sendTo({t:'cmd',c:'layout',ratio:+b.dataset.r}));
+$('#bSw').onclick=()=>{const t=calls.A;calls.A=calls.B;calls.B=t;sendTo({t:'cmd',c:'swap'})};
+let muted=false;const mediaCmd=(a,d)=>sendTo({t:'cmd',c:'media',slot,a,d});
+$('#mPlay').onclick=()=>mediaCmd('toggle');$('#mBack').onclick=()=>mediaCmd('seek',-10);$('#mFwd').onclick=()=>mediaCmd('seek',10);
+$('#mMute').onclick=()=>{muted=!muted;$('#mMute').textContent=muted?'🔇':'🔊';mediaCmd('mute',muted)};
+$('#vol').oninput=e=>{if(muted){muted=false;$('#mMute').textContent='🔊'}sendTo({t:'cmd',c:'vol',slot,v:e.target.value/100})};
+// --- Živé kreslení (Telestrator) ---
+let drawOn=false,col='#ff3b5c';const dC=$('#dC'),dx=dC.getContext('2d'),local=[];
+function setAR(a){$('#dpw').style.aspectRatio=String(a)}
+function lseg(s,p,q){const d=devicePixelRatio||1;dx.strokeStyle=s.c;dx.lineWidth=5*d;dx.lineCap=dx.lineJoin='round';dx.beginPath();dx.moveTo(p[0]*dC.width,p[1]*dC.height);dx.lineTo(q[0]*dC.width,q[1]*dC.height);dx.stroke()}
+function fitD(){const r=dC.getBoundingClientRect(),d=devicePixelRatio||1;dC.width=Math.max(1,r.width*d);dC.height=Math.max(1,r.height*d);local.forEach(s=>{if(s.pts.length===1)lseg(s,s.pts[0],s.pts[0]);for(let i=1;i<s.pts.length;i++)lseg(s,s.pts[i-1],s.pts[i])})}
+try{new ResizeObserver(fitD).observe($('#dpw'))}catch(e){}
+function localClear(){local.length=0;dx.clearRect(0,0,dC.width,dC.height)}
+function dBg(stream,img){const v=$('#dV'),i=$('#dI');if(stream){v.srcObject=stream;v.hidden=false;i.hidden=true}else if(img){i.src=img;i.hidden=false;v.hidden=true;v.srcObject=null}else{v.srcObject=null;v.hidden=true;i.hidden=true}}
+$('#drawTgl').onclick=()=>{drawOn=!drawOn;$('#drawTgl').textContent='✏️ Kreslit: '+(drawOn?'zapnuto':'vypnuto');$('#drawTgl').classList.toggle('p',drawOn);$('#dOff').hidden=drawOn;hap(10)};
+$$('#cols .cd').forEach(b=>b.onclick=()=>{col=b.dataset.c;$$('#cols .cd').forEach(x=>x.classList.toggle('on',x===b))});
+$('#inkClr').onclick=()=>{sendTo({t:'cmd',c:'inkclear'});localClear();hap(12)};
+{let n=0,cur=null,buf=[],raf=0;const pt=e=>{const r=dC.getBoundingClientRect();return[clamp((e.clientX-r.left)/r.width),clamp((e.clientY-r.top)/r.height)]};
+ const flush=end=>{raf=0;if(cur&&(buf.length||end))sendTo({t:'draw',id:cur.id,c:cur.c,pts:buf.splice(0),end:!!end})};
+ dC.onpointerdown=e=>{if(!drawOn)return;dC.setPointerCapture(e.pointerId);cur={id:Date.now()+'-'+(n++),c:col,pts:[]};local.push(cur);const p=pt(e);cur.pts.push(p);buf.push(p);lseg(cur,p,p);if(!raf)raf=requestAnimationFrame(()=>flush())};
+ dC.onpointermove=e=>{if(!cur)return;(e.getCoalescedEvents?e.getCoalescedEvents():[e]).forEach(ev=>{const p=pt(ev),l=cur.pts[cur.pts.length-1];cur.pts.push(p);buf.push(p);lseg(cur,l,p)});if(!raf)raf=requestAnimationFrame(()=>flush())};
+ dC.onpointerup=dC.onpointercancel=()=>{if(!cur)return;flush(true);cur=null}}
+// --- Magic Guest Link ---
+$('#invBtn').onclick=()=>{$('#invUrl').value=makeInvite();$('#inv').hidden=false};
+$('#invShare').onclick=async()=>{const u=$('#invUrl').value;try{if(navigator.share)await navigator.share({title:'Jednota',text:'Připoj se ke mně v aplikaci Jednota',url:u});else{await navigator.clipboard.writeText(u);toast('Odkaz zkopírován')}}catch(e){}};
+$('#invCopy').onclick=()=>navigator.clipboard.writeText($('#invUrl').value).then(()=>toast('Odkaz zkopírován'),()=>toast('Zkopíruj odkaz ručně'));
+$('#invClose').onclick=()=>$('#inv').hidden=true;
+{const p=$('#pad');let raf=0,x=.5,y=.5;const mv=e=>{const r=p.getBoundingClientRect();x=(e.clientX-r.left)/r.width;y=(e.clientY-r.top)/r.height;if(!raf)raf=requestAnimationFrame(()=>{raf=0;sendTo({t:'cmd',c:'cur',x,y})})};
+ p.onpointerdown=e=>{p.setPointerCapture(e.pointerId);mv(e);sendTo({t:'cmd',c:'tap'})};p.onpointermove=e=>e.buttons&&mv(e)}
+// --- zpětný dotyk z displeje (laser na náhledu) ---
+function onTouch(m){const l=$('#laser');l.style.left=m.x*100+'%';l.style.top=m.y*100+'%';if(m.ph==='up'){clearTimeout(onTouch.h);onTouch.h=setTimeout(()=>l.classList.remove('on'),450)}else{clearTimeout(onTouch.h);l.classList.add('on');if(m.ph==='down')hap(10)}
+ window.dispatchEvent(new CustomEvent('jednota-touch',{detail:m}))}
+function onStat(m){$('#pvStat').textContent=`${m.fps} fps · ${m.w}×${m.h}`+(sel&&conns.get(sel)&&conns.get(sel).rtt!=null?` · ${conns.get(sel).rtt} ms`:'')}
+// --- Presenter ---
+async function toJpeg(f,max=1600,q=.82){const bmp=await createImageBitmap(f),s=Math.min(1,max/Math.max(bmp.width,bmp.height)),c=document.createElement('canvas');c.width=bmp.width*s|0;c.height=bmp.height*s|0;c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);return c.toDataURL('image/jpeg',q)}
+let slides=[],si=0,t0=0;
+$('#bSlides').onclick=()=>$('#slideIn').click();
+$('#slideIn').onchange=async e=>{if(!e.target.files.length)return;toast('Zpracovávám snímky…');slides=[];for(const f of e.target.files)try{slides.push(await toJpeg(f))}catch(x){}
+ if(slides.length){si=0;t0=Date.now();$('#pres').hidden=false;showSlide()}e.target.value=''};
+function showSlide(){$('#pCur').src=slides[si];$('#pNext').src=slides[si+1]||'';$('#pNext').hidden=!slides[si+1];$('#pNum').textContent=(si+1)+' / '+slides.length;sendTo({t:'cmd',c:'inkclear'});localClear();dBg(null,slides[si]);sendTo({t:'cmd',c:'img',slot,data:slides[si]})}
+$('#pFwd').onclick=()=>{if(si<slides.length-1){si++;showSlide()}else toast('Konec prezentace')};$('#pPrev').onclick=()=>{if(si>0){si--;showSlide()}};
+setInterval(()=>{if(!slides.length)return;const s=(Date.now()-t0)/1000|0;$('#pTime').textContent=String(s/60|0).padStart(2,'0')+':'+String(s%60).padStart(2,'0')},1000);
+// --- Mobil/PC ↔ zařízení ---
+$('#bTxt').onclick=()=>{const v=$('#txt').value.trim();if(v&&sendTo({t:'msg',v})){$('#txt').value='';toast('Odesláno ✓')}};
+$('#bClip').onclick=async()=>{try{const v=await navigator.clipboard.readText();if(!v)return toast('Schránka je prázdná');if(sendTo({t:'clip',v}))toast('Schránka odeslána ✓')}catch(e){toast('Povol přístup ke schránce')}};
+// --- Continuity Drop ---
+let dropFile=null;const card=$('#dcard');
+$('#bPick').onclick=()=>$('#file').click();
+$('#file').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;if(f.size>25e6)return toast('Max 25 MB');dropFile=f;card.hidden=false;$('#bPick').hidden=true;card.style.cssText='';
+ card.style.backgroundImage=/^image\//.test(f.type)?`url(${URL.createObjectURL(f)})`:'none';card.textContent=/^image\//.test(f.type)?'':'📄'};
+{let drag=false,sy=0,ly=0,lt=0,vy=0,dy=0;
+ card.onpointerdown=e=>{drag=true;card.setPointerCapture(e.pointerId);sy=ly=e.clientY;lt=performance.now();vy=0;card.style.transition='none'};
+ card.onpointermove=e=>{if(!drag)return;dy=Math.min(0,e.clientY-sy);const n=performance.now();vy=(e.clientY-ly)/(n-lt||1);ly=e.clientY;lt=n;card.style.transform=`translateY(${dy}px) scale(${1+dy/1400})`;card.style.opacity=1+dy/520};
+ card.onpointerup=card.onpointercancel=async()=>{if(!drag)return;drag=false;
+  if(dy<-100||vy<-.7){card.style.transition='transform .55s var(--e),opacity .55s';card.style.transform='translateY(-130vh) scale(.35)';card.style.opacity=0;hap([14,40,14]);const f=dropFile;await throwFile(f);
+   setTimeout(()=>{card.hidden=true;card.style.cssText='';$('#bPick').hidden=false;dropFile=null},650)}
+  else{card.style.transition='transform .5s var(--sp),opacity .3s';card.style.transform='';card.style.opacity=1}dy=0}}
+async function throwFile(f){if(!f||!sel)return;const d=devs[sel];
+ if(d.type==='display'){if(!/^image\//.test(f.type))return toast('Displej přijímá jen obrázky');if(sendTo({t:'cmd',c:'img',slot,data:await toJpeg(f)}))toast('Přeletělo na displej ✓')}
+ else if(sendTo({t:'file',name:f.name,type:f.type,data:await f.arrayBuffer()}))toast('Přeletělo ✓')}
+// --- Akce ---
+function renderActs(){const g=$('#acts');g.innerHTML=acts.length?'':'<div class="hint" style="grid-column:1/3">Žádné akce. Přidej první dole.</div>';
+ acts.forEach((a,i)=>{const b=document.createElement('button');b.className='act';b.innerHTML=`<b>${esc(a.ic||'⚡')}</b>${esc(a.nm)}${editing?'<i>✕</i>':''}`;
+  b.onclick=()=>{if(editing){acts.splice(i,1);LS.set('acts',acts);renderActs();return}
+   if(a.tp==='hook')fetch(a.ur,{method:'POST',mode:'no-cors'}).then(()=>toast('Odesláno ✓')).catch(()=>toast('Chyba odeslání'));else location.href=a.ur};g.append(b)})}
+$('#editAct').onclick=()=>{editing=!editing;renderActs()};
+$('#aAdd').onclick=()=>{const nm=$('#aNm').value.trim(),ur=$('#aUr').value.trim();if(!nm||!ur)return toast('Vyplň název a adresu');
+ if($('#aTp').value==='hook'&&!/^https:\/\//.test(ur))return toast('Webhook musí být HTTPS');
+ acts.push({ic:$('#aIc').value||'⚡',nm,tp:$('#aTp').value,ur});LS.set('acts',acts);$('#aNm').value=$('#aUr').value=$('#aIc').value='';renderActs()};
+
+// ================= REŽIM DISPLEJ =================
+const views={},tvCalls={A:null,B:null},prevFrames={A:0,B:0};
+function mkView(el,k){const v=document.createElement('div');v.className='view2';
+ v.innerHTML=`<div class="empty">${k==='A'?'Levá půlka':'Pravá půlka'}</div><video autoplay playsinline></video><iframe allow="autoplay; encrypted-media; fullscreen"></iframe><img alt=""><div class="note"></div><div class="lbl" hidden></div>`;el.append(v);views[k]=v}
+function show(v,kind,label){['video','iframe','img','.note'].forEach(s=>v.querySelector(s).style.display='none');v.querySelector('.empty').style.display=kind?'none':'flex';
+ if(kind)v.querySelector(kind==='note'?'.note':kind).style.display='block';const l=v.querySelector('.lbl');l.textContent=label||'';l.hidden=!label}
+function layout(){$('#sA').style.width=tvRatio+'%';$('#sB').style.width=(100-tvRatio)+'%';$('#sA').style.display=tvRatio===0?'none':'block';$('#sB').style.display=tvRatio===100?'none':'block'}
+const broadcast=()=>conns.forEach(c=>c.ok&&c.open&&c.send({t:'state',ratio:tvRatio,ar:innerWidth/innerHeight}));
+function resetSlot(k){const v=views[k];v.querySelector('video').srcObject=null;const fr=v.querySelector('iframe');fr.onload=null;fr.removeAttribute('data-yt');fr.src='about:blank';v.querySelector('img').removeAttribute('src');show(v,null,'')}
+function closeCall(k){const c=tvCalls[k];if(c){tvCalls[k]=null;c.close()}}
+function tvCmd(m){const k=m.slot==='B'?'B':'A',v=views[k];
+ if(m.c==='layout'){tvRatio=clamp(+m.ratio,0,100);layout();broadcast()}
+ else if(m.c==='swap'){const a=$('#sA'),b=$('#sB'),va=views.A,vb=views.B;a.append(vb);b.append(va);views.A=vb;views.B=va;[tvCalls.A,tvCalls.B]=[tvCalls.B,tvCalls.A]}
+ else if(m.c==='url'){closeCall(k);resetSlot(k);let u=String(m.value).trim();if(!/^https?:\/\//.test(u))u='https://'+u;const fr=v.querySelector('iframe'),yid=ytId(u);
+  if(yid){fr.dataset.yt=1;fr.onload=()=>{try{fr.contentWindow.postMessage(JSON.stringify({event:'listening',id:1,channel:'widget'}),'*')}catch(e){}};fr.src='https://www.youtube.com/embed/'+yid+'?enablejsapi=1&autoplay=1&playsinline=1&rel=0';show(v,'iframe','YouTube')}
+  else{fr.src=u;show(v,'iframe','web (některé weby vložení blokují)')}}
+ else if(m.c==='note'){closeCall(k);resetSlot(k);v.querySelector('.note').textContent=String(m.value);show(v,'note','poznámka')}
+ else if(m.c==='img'&&/^data:image\//.test(m.data)){closeCall(k);resetSlot(k);v.querySelector('img').src=m.data;show(v,'img','')}
+ else if(m.c==='clear'){closeCall(k);resetSlot(k)}
+ else if(m.c==='vol'){const vd=v.querySelector('video');vd.muted=false;vd.volume=clamp(+m.v);if(v.querySelector('iframe').dataset.yt){ytSend(v,'unMute');ytSend(v,'setVolume',[Math.round(clamp(+m.v)*100)])}}
+ else if(m.c==='cur'){const c=$('#cur');c.style.display='block';c.style.left=clamp(m.x)*innerWidth+'px';c.style.top=clamp(m.y)*innerHeight+'px'}
+ else if(m.c==='tap'){const c=$('#cur');c.style.transform='scale(2)';setTimeout(()=>c.style.transform='',150)}
+ else if(m.c==='media')media(k,m.a,m.d);
+ else if(m.c==='inkclear')inkClear()}
+// --- Media Deck (příjem) ---
+const yt={};
+function ytId(u){const m=u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/))([\w-]{11})/);return m&&m[1]}
+function ytSend(v,func,args){try{v.querySelector('iframe').contentWindow.postMessage(JSON.stringify({event:'command',func,args:args||[]}),'*')}catch(e){}}
+function media(k,a,d){const v=views[k],vd=v.querySelector('video'),fr=v.querySelector('iframe');
+ if(vd.style.display==='block'){if(a==='toggle')vd.paused?vd.play():vd.pause();else if(a==='seek'){if(isFinite(vd.duration)&&vd.duration>0)vd.currentTime=clamp(vd.currentTime+(+d||0),0,vd.duration)}else if(a==='mute')vd.muted=!!d}
+ else if(fr.style.display==='block'&&fr.dataset.yt){const s=yt[k]||{};if(a==='toggle')ytSend(v,s.st===2?'playVideo':'pauseVideo');else if(a==='seek')ytSend(v,'seekTo',[Math.max(0,(s.t||0)+(+d||0)),true]);else if(a==='mute')ytSend(v,d?'mute':'unMute')}}
+addEventListener('message',e=>{if(!isDisp||!String(e.origin).endsWith('youtube.com'))return;let m;try{m=JSON.parse(e.data)}catch{return}
+ const k=['A','B'].find(x=>views[x]&&views[x].querySelector('iframe').contentWindow===e.source);if(!k||m.event!=='infoDelivery'||!m.info)return;
+ yt[k]=yt[k]||{};if(m.info.currentTime!=null)yt[k].t=m.info.currentTime;if(m.info.playerState!=null)yt[k].st=m.info.playerState});
+// --- Telestrator (příjem) ---
+const ink={cv:null,cx:null,list:[],cur:{}},INK=['#ff3b5c','#ffd60a','#30d158'];
+function inkInit(){ink.cv=$('#ink');ink.cx=ink.cv.getContext('2d');const fit=()=>{const d=devicePixelRatio||1;ink.cv.width=innerWidth*d;ink.cv.height=innerHeight*d;inkRedraw()};addEventListener('resize',fit);fit()}
+function iseg(c,p,q){const x=ink.cx,w=Math.max(4,innerWidth*.0045)*(devicePixelRatio||1);x.strokeStyle=c;x.shadowColor=c;x.shadowBlur=w*.8;x.lineWidth=w;x.lineCap=x.lineJoin='round';x.beginPath();x.moveTo(p[0]*ink.cv.width,p[1]*ink.cv.height);x.lineTo(q[0]*ink.cv.width,q[1]*ink.cv.height);x.stroke()}
+function inkRedraw(){ink.cx.clearRect(0,0,ink.cv.width,ink.cv.height);ink.list.forEach(s=>{if(s.pts.length===1)iseg(s.c,s.pts[0],s.pts[0]);for(let i=1;i<s.pts.length;i++)iseg(s.c,s.pts[i-1],s.pts[i])})}
+function inkDraw(m){if(!ink.cx||!Array.isArray(m.pts))return;const id=String(m.id);let s=ink.cur[id];if(!s){s=ink.cur[id]={c:INK.includes(m.c)?m.c:INK[0],pts:[]};ink.list.push(s);if(ink.list.length>400)ink.list.shift()}
+ m.pts.slice(0,64).forEach(p=>{const q=[clamp(+p[0]),clamp(+p[1])],l=s.pts[s.pts.length-1];s.pts.push(q);iseg(s.c,l||q,q)});if(m.end)delete ink.cur[id]}
+function inkClear(){ink.list=[];ink.cur={};if(ink.cx)ink.cx.clearRect(0,0,ink.cv.width,ink.cv.height)}
+function ripple(x,y){const r=document.createElement('i');r.className='rip';r.style.left=x+'px';r.style.top=y+'px';document.body.append(r);setTimeout(()=>r.remove(),650)}
+function bindTouch(el,k){let down=false,raf=0,last=null;
+ const norm=e=>{const v=el.querySelector('video'),r=v.getBoundingClientRect();let w=r.width,h=r.height,ox=r.left,oy=r.top;
+  if(v.videoWidth){const s=Math.min(w/v.videoWidth,h/v.videoHeight),cw=v.videoWidth*s,ch=v.videoHeight*s;ox+=(w-cw)/2;oy+=(h-ch)/2;w=cw;h=ch}return{x:clamp((e.clientX-ox)/w),y:clamp((e.clientY-oy)/h)}};
+ const snd=(ph,p)=>{const call=tvCalls[k];if(!call)return;const c=conns.get(call.peer);if(c&&c.ok&&c.open)c.send({t:'touch',slot:k,ph,x:p.x,y:p.y})};
+ el.addEventListener('pointerdown',e=>{hudShow();ripple(e.clientX,e.clientY);if(el.querySelector('video').style.display!=='block')return;down=true;el.setPointerCapture(e.pointerId);last=norm(e);snd('down',last)});
+ el.addEventListener('pointermove',e=>{if(!down)return;last=norm(e);if(!raf)raf=requestAnimationFrame(()=>{raf=0;snd('move',last)})});
+ const up=()=>{if(down){down=false;snd('up',last||{x:0,y:0})}};el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up)}
+function hudShow(){const h=$('#hud');h.classList.remove('h');clearTimeout(hudShow.t);hudShow.t=setTimeout(()=>h.classList.add('h'),3500)}
+function initDisp(){
+ $('#app').hidden=true;$('#tv').hidden=false;inkInit();addEventListener('resize',broadcast);mkView($('#sA'),'A');mkView($('#sB'),'B');layout();show(views.A,null);show(views.B,null);bindTouch($('#sA'),'A');bindTouch($('#sB'),'B');
+ $('#tvName').textContent=me.name;$('#tvCode').textContent=myCode();drawQR($('#tvQr'),joinUrl());
+ $('#tvStart').onclick=()=>{$('#tvgo').hidden=true;document.documentElement.requestFullscreen?.().catch(()=>{});wantWake=true;wake();hudShow()};
+ $('#hQr').onclick=()=>{showPair=!showPair;ui()};$('#hFs').onclick=()=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen?.().catch(()=>{})};
+ onCall=call=>{if(!devs[call.peer]){call.close();return}const k=call.metadata&&call.metadata.slot==='B'?'B':'A';closeCall(k);tvCalls[k]=call;call.answer();
+  call.on('stream',s=>{const v=views[k],vd=v.querySelector('video');if(vd.srcObject===s)return;resetSlot(k);vd.srcObject=s;vd.muted=false;vd.play().catch(()=>{vd.muted=true;vd.play()});prevFrames[k]=0;
+   show(v,'video','živě: '+String((call.metadata||{}).name||''));try{call.peerConnection.getReceivers().forEach(r=>{if('jitterBufferTarget' in r)r.jitterBufferTarget=30})}catch(e){}});
+  call.on('close',()=>{const kk=Object.keys(tvCalls).find(x=>tvCalls[x]===call);if(kk){tvCalls[kk]=null;resetSlot(kk)}})};
+ setInterval(()=>{let best=0;['A','B'].forEach(k=>{const call=tvCalls[k],vd=views[k].querySelector('video');if(!call||vd.style.display!=='block'||!vd.getVideoPlaybackQuality)return;
+  const n=vd.getVideoPlaybackQuality().totalVideoFrames,fps=Math.max(0,n-prevFrames[k]);prevFrames[k]=n;best=Math.max(best,fps);
+  const c=conns.get(call.peer);if(c&&c.ok&&c.open)c.send({t:'stat',slot:k,fps,w:vd.videoWidth,h:vd.videoHeight});
+  if(c&&c.rtt!=null)$('#hms').textContent=c.rtt+' ms'+(c.path?' · '+pathShort(c):'')});$('#hfps').textContent=best?best+' fps':'– fps'},1000)}
+if(isDisp)initDisp();else $('#tv').hidden=true;
+ui();renderActs();
+try{navigator.serviceWorker&&navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
+</script></body></html>
